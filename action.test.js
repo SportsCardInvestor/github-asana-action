@@ -5,6 +5,7 @@ const github = require('@actions/github');
 describe('asana github actions', () => {
   let inputs = {};
   let defaultBody;
+  let multiLineBody;
   let client;
   let task;
 
@@ -37,7 +38,7 @@ describe('asana github actions', () => {
       github.context.ref = 'refs/heads/some-ref'
       github.context.sha = '1234567890123456789012345678901234567890'
   
-      process.env['GITHUB_REPOSITORY'] = 'a-cool-owner/a-cool-repo'
+      process.env['GITHUB_REPOSITORY'] = 'sportscardinvestor/some-sick-repo-brah'
 
       client = await action.buildClient(asanaPAT);
       if(client === null){
@@ -51,6 +52,12 @@ describe('asana github actions', () => {
       });
 
       defaultBody = `Implement https://app.asana.com/0/${projectId}/${task.gid} in record time`;
+      multiLineBody = `
+        Foo bar baz quux
+        .asklfa;sldkfj
+        Asana Task: https://app.asana.com/0/${projectId}/${task.gid}
+        asdflkjasd;ljf
+      `;
     })
 
     afterAll(async () => {
@@ -62,6 +69,25 @@ describe('asana github actions', () => {
       inputs = {}
       github.context.payload = {};
     })
+
+    test('getting Asana task IDs from a PR body', () => {
+      let taskIDs = action.getTaskIDsFromPRBody(`
+        Foo bar https://app.asana.com/0/1202227011896787/1202716380711303
+        asdfasdfasdf
+        asfdkhsjf https://app.asana.com/0/1202227011896787/1202716380711310/f
+      `);
+
+      expect(taskIDs).toStrictEqual(["1202716380711303", "1202716380711310"]);
+
+      taskIDs = action.getTaskIDsFromPRBody(`
+      https://app.asana.com/0/1202454337132640/1202824585057615/f
+      https://app.asana.com/0/1202454337132640/1202824585057613/f
+      https://app.asana.com/0/1202454337132640/1202824585057581/f
+      https://app.asana.com/0/1202454337132640/1202824585057575/f
+      `);
+
+      expect(taskIDs).toStrictEqual(["1202824585057615", "1202824585057613", "1202824585057581", "1202824585057575"]);
+    });
 
     test('asserting a links presence', async () => {
       inputs = {
@@ -91,8 +117,45 @@ describe('asana github actions', () => {
       await action.action();
 
       expect(mockCreateStatus).toHaveBeenCalledWith({
-        owner: 'a-cool-owner',
-        repo: 'a-cool-repo',
+        owner: 'sportscardinvestor',
+        repo: 'some-sick-repo-brah',
+        context: 'asana-link-presence',
+        state: 'success',
+        description: 'asana link not found',
+        sha: '1234567890123456789012345678901234567890',
+      });
+    });
+
+    test('asserting a links presence, multiline', async () => {
+      inputs = {
+        'asana-pat': asanaPAT,
+        'action': 'assert-link',
+        'link-required': 'true',
+        'github-token': 'fake'
+      }
+      github.context.payload = {
+        pull_request: {
+          'body': multiLineBody,
+          'head': {
+            'sha': '1234567890123456789012345678901234567890'
+          }
+        }
+      };
+
+      const mockCreateStatus = jest.fn()
+      github.GitHub = jest.fn().mockImplementation(() => {
+        return {
+          repos: {
+            createStatus: mockCreateStatus,
+          }
+        }
+      });
+
+      await action.action();
+
+      expect(mockCreateStatus).toHaveBeenCalledWith({
+        owner: 'sportscardinvestor',
+        repo: 'some-sick-repo-brah',
         context: 'asana-link-presence',
         state: 'success',
         description: 'asana link not found',

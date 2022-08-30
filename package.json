@@ -1,32 +1,34 @@
 {
-  "name": "github-asana",
-  "version": "4.0.0",
-  "description": "Action to integrate git with asana",
+  "name": "@sportscardinvestor/github-asana-action",
+  "version": "1.0.0",
+  "description": "Action to integrate Github pull requests with an Asana board worklflow",
   "main": "index.js",
   "scripts": {
     "test": "jest"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/insurify/github-actions.git"
+    "url": "git+https://github.com/sportscardinvestor/github-asana-action.git"
   },
   "keywords": [
+    "sports card investor",
     "github-actions",
     "asana",
     "git"
   ],
-  "author": "Ali Sajid",
+  "author": "James Womack",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/insurify/github-actions/issues"
+    "url": "https://github.com/sportscardinvestor/github-asana-action/issues"
   },
-  "homepage": "https://github.com/insurify/github-actions#readme",
+  "homepage": "https://github.com/sportscardinvestor/github-asana-action#readme",
   "dependencies": {
     "@actions/core": "^1.2.0",
     "@actions/github": "^1.1.0",
     "asana": "^0.17.3"
   },
   "devDependencies": {
+    "eslint": "^8.23.0",
     "jest": "^26.0.1"
   }
 }

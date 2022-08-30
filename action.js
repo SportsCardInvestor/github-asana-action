@@ -24,12 +24,8 @@ async function moveSection(client, taskId, targets) {
 
 async function findComment(client, taskId, commentId) {
   let stories;
-  try {
-    const storiesCollection = await client.tasks.stories(taskId);
-    stories = await storiesCollection.fetch(200);
-  } catch (error) {
-    throw error;
-  }
+  const storiesCollection = await client.tasks.stories(taskId);
+  stories = await storiesCollection.fetch(200);
 
   return stories.find(story => story.text.indexOf(commentId) !== -1);
 }
@@ -56,15 +52,33 @@ async function buildClient(asanaPAT) {
   }).useAccessToken(asanaPAT).authorize();
 }
 
+function getTaskIDsFromPRBody (pullRequestBody, { triggerPhrase = '' } = {}) {
+  let parseAsanaURL;
+
+  const REGEX_STRING = `${triggerPhrase}(?:\\s*)https:\\/\\/app.asana.com\\/(\\d+)\\/(?<project>\\d+)\\/(?<task>\\d+)`;
+  const REGEX = new RegExp(REGEX_STRING,'gm');
+
+  console.info('looking in body', pullRequestBody, 'regex', REGEX_STRING);
+
+  let foundAsanaTasks = [];
+  while ((parseAsanaURL = REGEX.exec(pullRequestBody)) !== null) {
+    const taskId = parseAsanaURL.groups.task;
+    if (!taskId) {
+      core.error(`Invalid Asana task URL after the trigger phrase ${triggerPhrase}`);
+      continue;
+    }
+    foundAsanaTasks.push(taskId);
+  }
+
+  return foundAsanaTasks;
+}
+
 async function action() {  
   const 
     ASANA_PAT = core.getInput('asana-pat', {required: true}),
     ACTION = core.getInput('action', {required: true}),
     TRIGGER_PHRASE = core.getInput('trigger-phrase') || '',
-    PULL_REQUEST = github.context.payload.pull_request,
-    REGEX_STRING = `${TRIGGER_PHRASE}(?:\s*)https:\\/\\/app.asana.com\\/(\\d+)\\/(?<project>\\d+)\\/(?<task>\\d+)`,
-    REGEX = new RegExp(REGEX_STRING,'g')
-  ;
+    PULL_REQUEST = github.context.payload.pull_request;
 
   console.log('pull_request', PULL_REQUEST);
 
@@ -73,16 +87,7 @@ async function action() {
     throw new Error('client authorization failed');
   }
 
-  console.info('looking in body', PULL_REQUEST.body, 'regex', REGEX_STRING);
-  let foundAsanaTasks = [];
-  while ((parseAsanaURL = REGEX.exec(PULL_REQUEST.body)) !== null) {
-    const taskId = parseAsanaURL.groups.task;
-    if (!taskId) {
-      core.error(`Invalid Asana task URL after the trigger phrase ${TRIGGER_PHRASE}`);
-      continue;
-    }
-    foundAsanaTasks.push(taskId);
-  }
+  const foundAsanaTasks = getTaskIDsFromPRBody(PULL_REQUEST.body, { triggerPhrase: TRIGGER_PHRASE });
   console.info(`found ${foundAsanaTasks.length} taskIds:`, foundAsanaTasks.join(','));
 
   console.info('calling', ACTION);
@@ -117,7 +122,7 @@ async function action() {
         }
         const comment = await addComment(client, taskId, commentId, htmlText, isPinned);
         comments.push(comment);
-      };
+      }
       return comments;
     }
     case 'remove-comment': {
@@ -150,7 +155,7 @@ async function action() {
           console.error('rejecting promise', error);
         }
         taskIds.push(taskId);
-      };
+      }
       return taskIds;
     }
     case 'move-section': {
@@ -171,5 +176,6 @@ async function action() {
 module.exports = {
   action,
   default: action,
-  buildClient: buildClient
+  buildClient,
+  getTaskIDsFromPRBody
 };

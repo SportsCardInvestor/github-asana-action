@@ -1,7 +1,7 @@
 
-# Github-Asana action
+# SportsCardInvestor Github<->Asana action
 
-This action integrates asana with github.
+This action allows Github PR operations, such as merging a PR, to automatically trigger adjustments in Asana
 
 ### Prerequisites
 
@@ -57,26 +57,31 @@ if you don't want to move task omit `targets`.
 ## Example usage
 
 ```yaml
-name: Move a task to a different section
+name: Move task to Ready to Deploy
 
 on:
   pull_request:
     types: [closed]
 
 jobs:
-  sync:
+  asana:
     runs-on: ubuntu-latest
     steps:
-      - uses: everphone-gmbh/github-asana-action
+      - name: Add to Asana
+        uses: SportsCardInvestor/github-asana-action@18b2d90e6c588a8fcb49e2debf28c74f31f0ef43
         if: github.event.pull_request.merged
         with:
           asana-pat: ${{ secrets.ASANA_PAT }}
+          task-comment: 'View Pull Request Here: '
           action: 'move-section'
-          targets: '[{"project": "Engineering scrum", "section": "Done"}]'
+          targets: '[{"project": "MM Web 2.0 - Backlog", "section": "Ready to Deploy"}]'
 ```
 
 ```yaml
 name: Add a comment
+
+env:
+  PR_NUMBER: ${{ github.event.number }}
 
 on:
   pull_request:
@@ -88,7 +93,7 @@ jobs:
     steps:
       - name: set pr number
         run: echo "::set-env name=PR_NUMBER::$(echo -n "${GITHUB_REF}" | awk 'BEGIN { FS = "/" } ; { print $3 }')"
-      - uses: everphone-gmbh/github-asana-action
+      - uses: SportsCardInvestor/github-asana-action@18b2d90e6c588a8fcb49e2debf28c74f31f0ef43
         with:
           asana-pat: ${{ secrets.ASANA_PAT }}
           action: 'add-comment'
@@ -100,6 +105,9 @@ jobs:
 ```yaml
 name: Remove a comment
 
+env:
+  PR_NUMBER: ${{ github.event.number }}
+
 on:
   pull_request:
     types: [closed]
@@ -110,7 +118,7 @@ jobs:
     steps:
       - name: set pr number
         run: echo "::set-env name=PR_NUMBER::$(echo -n "${GITHUB_REF}" | awk 'BEGIN { FS = "/" } ; { print $3 }')"
-      - uses: everphone-gmbh/github-asana-action
+      - uses: SportsCardInvestor/github-asana-action@18b2d90e6c588a8fcb49e2debf28c74f31f0ef43
         if: github.event.pull_request.merged
         with:
           asana-pat: ${{ secrets.ASANA_PAT }}
@@ -130,7 +138,7 @@ jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
-      - uses: everphone-gmbh/github-asana-action
+      - uses: SportsCardInvestor/github-asana-action@18b2d90e6c588a8fcb49e2debf28c74f31f0ef43
         with:
           asana-pat: ${{ secrets.ASANA_PAT }}
           action: assert-link
@@ -150,7 +158,7 @@ jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
-      - uses: everphone-gmbh/github-asana-action
+      - uses: SportsCardInvestor/github-asana-action@18b2d90e6c588a8fcb49e2debf28c74f31f0ef43
         if: github.event.pull_request.merged
         with:
           asana-pat: ${{ secrets.ASANA_PAT }}
