@@ -7,6 +7,7 @@ This action allows Github PR operations, such as merging a PR, to automatically 
 
 - Asana account with the permission on the particular project you want to integrate with.
 - Must provide the task url in the PR description.
+- Must place an Asana Personal Access Token in your repo's Github secrets
 
 ## Inputs
 
@@ -68,7 +69,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Add to Asana
-        uses: SportsCardInvestor/github-asana-action@18b2d90e6c588a8fcb49e2debf28c74f31f0ef43
+        uses: SportsCardInvestor/github-asana-action@efb3f9de6fb96dbdb959c98caac0ffb6e0cc86d7
         if: github.event.pull_request.merged
         with:
           asana-pat: ${{ secrets.ASANA_PAT }}
@@ -93,12 +94,12 @@ jobs:
     steps:
       - name: set pr number
         run: echo "::set-env name=PR_NUMBER::$(echo -n "${GITHUB_REF}" | awk 'BEGIN { FS = "/" } ; { print $3 }')"
-      - uses: SportsCardInvestor/github-asana-action@18b2d90e6c588a8fcb49e2debf28c74f31f0ef43
+      - uses: SportsCardInvestor/github-asana-action@efb3f9de6fb96dbdb959c98caac0ffb6e0cc86d7
         with:
           asana-pat: ${{ secrets.ASANA_PAT }}
           action: 'add-comment'
           comment-id: "#pr:${{env.PR_NUMBER}}"
-          text: 'View Pull Request: https://github.com/everphone-gmbh/frontend-symfony/pull/${{env.PR_NUMBER}}'
+          text: 'View Pull Request: https://github.com/SportsCardInvestor/some-repo-name/pull/${{env.PR_NUMBER}}'
           is-pinned: true
 ```
 
@@ -118,7 +119,7 @@ jobs:
     steps:
       - name: set pr number
         run: echo "::set-env name=PR_NUMBER::$(echo -n "${GITHUB_REF}" | awk 'BEGIN { FS = "/" } ; { print $3 }')"
-      - uses: SportsCardInvestor/github-asana-action@18b2d90e6c588a8fcb49e2debf28c74f31f0ef43
+      - uses: SportsCardInvestor/github-asana-action@efb3f9de6fb96dbdb959c98caac0ffb6e0cc86d7
         if: github.event.pull_request.merged
         with:
           asana-pat: ${{ secrets.ASANA_PAT }}
@@ -138,7 +139,7 @@ jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
-      - uses: SportsCardInvestor/github-asana-action@18b2d90e6c588a8fcb49e2debf28c74f31f0ef43
+      - uses: SportsCardInvestor/github-asana-action@efb3f9de6fb96dbdb959c98caac0ffb6e0cc86d7
         with:
           asana-pat: ${{ secrets.ASANA_PAT }}
           action: assert-link
@@ -158,7 +159,7 @@ jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
-      - uses: SportsCardInvestor/github-asana-action@18b2d90e6c588a8fcb49e2debf28c74f31f0ef43
+      - uses: SportsCardInvestor/github-asana-action@efb3f9de6fb96dbdb959c98caac0ffb6e0cc86d7
         if: github.event.pull_request.merged
         with:
           asana-pat: ${{ secrets.ASANA_PAT }}
